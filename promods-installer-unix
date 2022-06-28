@@ -123,7 +123,7 @@ if [[ $OS == 'macOS' ]]; then
     echo "VERIFYING CHECKSUMS"
     echo "==================="
     echo
-    if [[ ! -e promods-def-v${pm}.scs && ! -e promods-def-st-v${pm}.scs ]]; then
+    if [[ ! -e promods-def-v${pm}.scs && ! -e promods-def-st-v${pm}.scs && ! -e "$HOME/Library/Application Support/Euro Truck Simulator 2/mod/promods-def-v${pm}.scs" && ! -e "$HOME/Library/Application Support/Euro Truck Simulator 2/mod/promods-def-st-v${pm}.scs" ]]; then
         printf "%sDef file missing, please, head to https://www.promods.net/download.php?game=ets and generate the def file, then restart this script %s\n" "$COLOR_RED" "$END"
         exit 4
     fi
@@ -254,7 +254,7 @@ if [[ $OS == 'Linux' ]]; then
     echo "VERIFYING CHECKSUMS"
     echo "==================="
     echo
-    if [[ ! -e promods-def-v${pm}.scs && ! -e promods-def-st-v${pm}.scs ]]; then
+    if [[ ! -e promods-def-v${pm}.scs && ! -e promods-def-st-v${pm}.scs && ! -e "$HOME/.local/share/Euro Truck Simulator 2/mod/promods-def-v${pm}.scs" && ! -e "$HOME/.local/share/Euro Truck Simulator 2/mod/promods-def-st-v${pm}.scs" ]]; then
         printf "%sDef file missing, please, head to https://www.promods.net/download.php?game=ets and generate the def file, then restart this script %s\n" "$COLOR_RED" "$END"
         exit 4
     fi
