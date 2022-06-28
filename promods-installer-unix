@@ -210,6 +210,12 @@ if [[ $OS == 'macOS' ]]; then
     /tmp/promods-installer/7zip/7zz e -o"$HOME/Library/Application Support/Euro Truck Simulator 2/mod" promods-v${pm}.7z.001
     fail_check
     mv "$HOME/Library/Application Support/Euro Truck Simulator 2/mod/readme.txt" "$HOME/Library/Application Support/Euro Truck Simulator 2/mod/readme_main.txt"
+    if [[ -e promods-def-v${pm}.scs]]; then
+        mv promods-def-v${pm}.scs "$HOME/Library/Application Support/Euro Truck Simulator 2/mod"
+    fi
+    if [[ ! -e promods-def-v${pm}.scs && ! -e promods-def-st-v${pm}.scs ]]; then
+        mv promods-def-st-v${pm}.scs "$HOME/Library/Application Support/Euro Truck Simulator 2/mod"
+    fi
     if [[ $is_cap == 1 ]]; then
         /tmp/promods-installer/7zip/7zz e -o"$HOME/Library/Application Support/Euro Truck Simulator 2/mod" promods-cap-v${cap}.7z
         fail_check
@@ -342,6 +348,12 @@ if [[ $OS == 'Linux' ]]; then
     tar --extract --file /tmp/promods-installer/7zip/7zip.tar --directory /tmp/promods-installer/7zip 7zz
     /tmp/promods-installer/7zip/7zz e -o"$HOME/.local/share/Euro Truck Simulator 2/mod" promods-v${pm}.7z.001
     fail_check
+    if [[ -e promods-def-v${pm}.scs]]; then
+        mv promods-def-v${pm}.scs "$HOME/.local/share/Euro Truck Simulator 2/mod"
+    fi
+    if [[ ! -e promods-def-v${pm}.scs && ! -e promods-def-st-v${pm}.scs ]]; then
+        mv promods-def-st-v${pm}.scs "$HOME/.local/share/Euro Truck Simulator 2/mod"
+    fi
     mv "$HOME/.local/share/Euro Truck Simulator 2/mod/readme.txt" "$HOME/.local/share/Euro Truck Simulator 2/mod/readme_main.txt"
     if [[ $is_cap == 1 ]]; then
         /tmp/promods-installer/7zip/7zz e -o"$HOME/.local/share/Euro Truck Simulator 2/mod" promods-cap-v${cap}.7z
