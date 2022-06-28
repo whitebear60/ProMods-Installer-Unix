@@ -213,7 +213,7 @@ if [[ $OS == 'macOS' ]]; then
     if [[ -e promods-def-v${pm}.scs]]; then
         mv promods-def-v${pm}.scs "$HOME/Library/Application Support/Euro Truck Simulator 2/mod"
     fi
-    if [[ ! -e promods-def-v${pm}.scs && ! -e promods-def-st-v${pm}.scs ]]; then
+    if [[ -e promods-def-st-v${pm}.scs ]]; then
         mv promods-def-st-v${pm}.scs "$HOME/Library/Application Support/Euro Truck Simulator 2/mod"
     fi
     if [[ $is_cap == 1 ]]; then
@@ -351,7 +351,7 @@ if [[ $OS == 'Linux' ]]; then
     if [[ -e promods-def-v${pm}.scs]]; then
         mv promods-def-v${pm}.scs "$HOME/.local/share/Euro Truck Simulator 2/mod"
     fi
-    if [[ ! -e promods-def-v${pm}.scs && ! -e promods-def-st-v${pm}.scs ]]; then
+    if [[ -e promods-def-st-v${pm}.scs ]]; then
         mv promods-def-st-v${pm}.scs "$HOME/.local/share/Euro Truck Simulator 2/mod"
     fi
     mv "$HOME/.local/share/Euro Truck Simulator 2/mod/readme.txt" "$HOME/.local/share/Euro Truck Simulator 2/mod/readme_main.txt"
