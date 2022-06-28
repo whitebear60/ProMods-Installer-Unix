@@ -1,0 +1,367 @@
+#!/usr/bin/env bash
+promods_version="2.61"
+cap_version="1.18"
+tcp_version="1.32"
+me_version="2.61"
+
+pm="261"
+cap="118"
+tcp="132"
+me="261"
+echo "Welcome to ProMods ${promods_version} Installer"
+echo
+echo "This script will help you to install ProMods ${promods_version} with optional add-ons:"
+echo
+echo "ProMods Cabin & Accessories Pack ${cap_version}"
+echo "ProMods Middle East ${me_version}"
+echo "ProMods Trailer & Company Pack ${tcp_version}"
+echo
+echo "This installer will assist you with archives, downloaded from ProMods Free Download server."
+echo "Please download all eight ProMods archives from https://promods.net/setup.php?game=ets and place into one folder with this file."
+echo "If you want to install addons, download them from https://www.promods.net/addon.php, and place into one folder with this file."
+
+COLOR_RED="$(tput setaf 1)"
+COLOR_GREEN="$(tput setaf 2)"
+END="$(tput sgr0)"
+# Check for extractiom failures/aborts, exit after that
+function fail_check() {
+    status=$?
+    if [[ $status != 0 ]]; then cleanup && exit $status; fi
+}
+
+# Seperate function for checking failure of 7-zip download, with an error message
+
+function fail_check_curl() {
+    status=$?
+    if [[ $status != 0 ]]; then printf "%s7-zip download error, please check your Internet connection%s \n" "$COLOR_RED" "$END" && cleanup && exit $status; fi
+}
+# Cleanup on exit or after an extraction or download error
+function cleanup() {
+    echo Cleaning up...
+    rm -rf /tmp/promods-installer
+}
+
+while true; do
+
+read -p "Have you downloaded all ProMods files? (y/n) " is_inst
+
+case $is_inst in 
+	[yY] ) echo "Assuming ProMods is downloaded and located in the folder with this file, continuing...";
+		break;;
+	[nN] ) echo "Exiting...";
+        exit 0;;
+	* ) echo "Please enter \"y\" or \"n\".";;
+esac
+
+done
+
+  while true; do
+    read -p "Do you want to install Cabin & Accessories Pack? (y/n) " is_cap_input
+    case $is_cap_input in 
+	    [yY] ) is_cap=1 && printf "%sProMods Cabin & Accessories Pack will be installed.%s \n" "$COLOR_GREEN" "$END";
+    		break;;
+	    [nN] ) is_cap=0 && printf "%sProMods Cabin & Accessories Pack will not be installed.%s \n" "$COLOR_RED" "$END";
+            break;;
+	    * ) echo "Please enter \"y\" or \"n\".";;
+    esac
+    done
+
+    while true; do
+    read -p "Do you want to install Middle East Add-On? (y/n) " is_me_input
+    case $is_me_input in 
+        [yY] ) is_me=1 && printf "%sProMods Middle East will be installed.%s \n" "$COLOR_GREEN" "$END";
+    		break;;
+	    [nN] ) is_me=0 && printf "%sProMods Middle East will not be installed.%s \n" "$COLOR_RED" "$END";
+            break;;
+	    * ) echo "Please enter \"y\" or \"n\".";;
+    esac
+    done
+
+    while true; do
+    read -p "Do you want to install Trailer & Company Pack? (y/n) " is_tcp_input
+    case $is_tcp_input in 
+	    [yY] ) is_tcp=1 && printf "%sProMods Trailer & Company Pack will be installed.%s \n" "$COLOR_GREEN" "$END";
+    		break;;
+	    [nN] ) is_tcp=0 && printf "%sProMods Trailer & Company Pack will not be installed.%s \n" "$COLOR_RED" "$END";
+            break;;
+	    * ) echo "Please enter \"y\" or \"n\".";;
+    esac
+
+    done
+
+p1sum="106c44470464796edfbbb569b008564a0221aa726b41b703f3551ef245d0d8f3  promods-v${pm}.7z.001"
+p2sum="9cbb0617d9a396d9794d7321b203d9fc6f53f8eb3eae329148c229ba60839620  promods-v${pm}.7z.002"
+p3sum="ef23beaa38e7f36270fc181c892360a30e77bcf7d854a49961df3ad135a58a98  promods-v${pm}.7z.003"
+p4sum="1c49d13073e7fc530b2a9afe9ea58f66adf71f5056308c32059984d3facd88d7  promods-v${pm}.7z.004"
+p5sum="757d98d917bde78b41750a4b6878473df1caa2d601bbce3b685ef8f3c4939cba  promods-v${pm}.7z.005"
+p6sum="f95a775938902081118a22c3e09d72b04c8d2e82265f2b93b9daefea5efe51fd  promods-v${pm}.7z.006"
+p7sum="f434dd9ed1306a6dbc1b06394a2f93753958b0a4b11eb1886ec104d76b191cf5  promods-v${pm}.7z.007"
+p8sum="3389aff94556a6ece511ab2a6b5a2bbdf8a27757df4229a21f296aae9b393f40  promods-v${pm}.7z.008"
+capsum="31dbbb624b1fd71ecfe917eef6322f95cac32660326cb1b49f6ffdb7b8f8aef3  promods-cap-v${cap}.7z"
+mesum="49cc3d6e4e87f927934dccd5bfbfc96f3c6ada1f128ab2260996365a9e87d0a9  promods-me-v${me}.7z"
+tcpsum="14eac1764446de5de48b8a6178804f6475a71d0a66cf8e9f53167262f0fb6bf5  promods-tcp-v${tcp}.7z"
+if [[ $(uname -s)  == "Darwin" ]]; then
+    echo "Detected operating system: macOS"
+    OS='macOS'
+elif [[ $(uname -s) == "Linux" ]]; then
+    echo "Detected operating system: Linux"
+    OS='Linux'
+else
+    echo "Unknown system, exiting..."
+    exit 1;
+fi
+if [[ $OS == 'macOS' ]]; then
+    echo
+    echo "==================="
+    echo "VERIFYING CHECKSUMS"
+    echo "==================="
+    echo
+    if [[ ! -e promods-def-v${pm}.scs && ! -e promods-def-st-v${pm}.scs ]]; then
+        printf "%sDef file missing, please, head to https://www.promods.net/download.php?game=ets and generate the def file, then restart this script %s\n" "$COLOR_RED" "$END"
+        exit 4
+    fi
+    if [[ $(shasum -a 256 promods-v${pm}.7z.001) == "$p1sum" ]]; then
+     printf "%spromods-v${pm}.7z.001: OK%s \n" "$COLOR_GREEN" "$END"
+    else
+        printf "%spromods-v${pm}.7z.001: FAILED%s \n" "$COLOR_RED" "$END"
+        failed_file=1
+    fi
+    if [[ $(shasum -a 256 promods-v${pm}.7z.002) == "$p2sum" ]]; then
+     printf "%spromods-v${pm}.7z.002: OK%s \n" "$COLOR_GREEN" "$END"
+     else
+        printf "%spromods-v${pm}.7z.002: FAILED%s \n" "$COLOR_RED" "$END"
+        failed_file=1
+    fi
+    if [[ $(shasum -a 256 promods-v${pm}.7z.003) == "$p3sum" ]]; then
+     printf "%spromods-v${pm}.7z.003: OK%s \n" "$COLOR_GREEN" "$END"
+     else
+        printf "%spromods-v${pm}.7z.003: FAILED%s \n" "$COLOR_RED" "$END"
+        failed_file=1
+    fi
+    if [[ $(shasum -a 256 promods-v${pm}.7z.004) == "$p4sum" ]]; then
+     printf "%spromods-v${pm}.7z.004: OK%s \n" "$COLOR_GREEN" "$END"
+     else
+        printf "%spromods-v${pm}.7z.004: FAILED%s \n" "$COLOR_RED" "$END"
+        failed_file=1
+    fi
+    if [[ $(shasum -a 256 promods-v${pm}.7z.005) == "$p5sum" ]]; then
+     printf "%spromods-v${pm}.7z.005: OK%s \n" "$COLOR_GREEN" "$END"
+     else
+        printf "%spromods-v${pm}.7z.005: FAILED%s \n" "$COLOR_RED" "$END"
+        failed_file=1
+    fi
+    if [[ $(shasum -a 256 promods-v${pm}.7z.006) == "$p6sum" ]]; then
+     printf "%spromods-v${pm}.7z.006: OK%s \n" "$COLOR_GREEN" "$END"
+     else
+        printf "%spromods-v${pm}.7z.006: FAILED%s \n" "$COLOR_RED" "$END"
+        failed_file=1
+    fi
+    if [[ $(shasum -a 256 promods-v${pm}.7z.007) == "$p7sum" ]]; then
+     printf "%spromods-v${pm}.7z.007: OK%s \n" "$COLOR_GREEN" "$END"
+     else
+        printf "%spromods-v${pm}.7z.007: FAILED%s \n" "$COLOR_RED" "$END"
+        failed_file=1
+    fi
+    if [[ $(shasum -a 256 promods-v${pm}.7z.008) == "$p8sum" ]]; then
+     printf "%spromods-v${pm}.7z.008: OK%s \n" "$COLOR_GREEN" "$END"
+     else
+        printf "%spromods-v${pm}.7z.008: FAILED%s \n" "$COLOR_RED" "$END"
+        failed_file=1
+    fi
+    if [[ $is_cap == 1 ]]; then
+        if [[ $(shasum -a 256 promods-cap-v${cap}.7z) == "$capsum" ]]; then
+            printf "%spromods-cap-v${cap}.7z: OK%s \n" "$COLOR_GREEN" "$END"
+        else
+            printf "%spromods-cap-v${cap}.7z: FAILED%s \n" "$COLOR_RED" "$END"
+            failed_file=1
+        fi
+    fi
+    if [[ $is_me == 1 ]]; then
+        if [[ $(shasum -a 256 promods-me-v${me}.7z) == "$mesum" ]]; then
+            printf "%spromods-me-v${me}.7z: OK%s \n" "$COLOR_GREEN" "$END"
+        else
+            printf "%spromods-me-v${me}.7z: FAILED%s \n" "$COLOR_RED" "$END"
+            failed_file=1
+        fi
+    fi
+    if [[ $is_tcp == 1 ]]; then
+        if [[ $(shasum -a 256 promods-tcp-v${tcp}.7z) == "$tcpsum" ]]; then
+            printf "%spromods-tcp-v${tcp}.7z: OK%s \n" "$COLOR_GREEN" "$END"
+        else
+            printf "%spromods-tcp-v${tcp}.7z: FAILED%s \n" "$COLOR_RED" "$END"
+            failed_file=1
+        fi
+    fi
+    if [[ $failed_file == 1 ]]; then
+        echo "One or more files you downloaded looks corrupt or missing. Please re-download all files that are not OK in the output above"
+        exit 8
+    fi
+    echo
+    echo "==================="
+    echo "UNPACKING ARCHIVES"
+    echo "==================="
+    echo
+    mkdir -p "$HOME/Library/Application Support/Euro Truck Simulator 2/mod"
+    mkdir -p /tmp/promods-installer/7zip
+    curl --fail --progress-bar https://www.7-zip.org/a/7z2107-mac.tar.xz -o /tmp/promods-installer/7zip/7zip.tar.xz
+    fail_check_curl
+    unxz -d /tmp/promods-installer/7zip/7zip.tar.xz
+    tar --extract --file /tmp/promods-installer/7zip/7zip.tar --directory /tmp/promods-installer/7zip 7zz
+    /tmp/promods-installer/7zip/7zz e -o"$HOME/Library/Application Support/Euro Truck Simulator 2/mod" promods-v${pm}.7z.001
+    fail_check
+    mv "$HOME/Library/Application Support/Euro Truck Simulator 2/mod/readme.txt" "$HOME/Library/Application Support/Euro Truck Simulator 2/mod/readme_main.txt"
+    if [[ $is_cap == 1 ]]; then
+        /tmp/promods-installer/7zip/7zz e -o"$HOME/Library/Application Support/Euro Truck Simulator 2/mod" promods-cap-v${cap}.7z
+        fail_check
+        mv "$HOME/Library/Application Support/Euro Truck Simulator 2/mod/readme.txt" "$HOME/Library/Application Support/Euro Truck Simulator 2/mod/readme_cap.txt"
+    fi    
+    if [[ $is_me == 1 ]]; then
+        /tmp/promods-installer/7zip/7zz e -o"$HOME/Library/Application Support/Euro Truck Simulator 2/mod" promods-me-v${me}.7z
+        fail_check
+        mv "$HOME/Library/Application Support/Euro Truck Simulator 2/mod/readme.txt" "$HOME/Library/Application Support/Euro Truck Simulator 2/mod/readme_me.txt"
+    fi
+    if [[ $is_tcp == 1 ]]; then
+        /tmp/promods-installer/7zip/7zz e -o"$HOME/Library/Application Support/Euro Truck Simulator 2/mod" promods-tcp-v${tcp}.7z
+        fail_check
+        mv "$HOME/Library/Application Support/Euro Truck Simulator 2/mod/readme.txt" "$HOME/Library/Application Support/Euro Truck Simulator 2/mod/readme_tcp.txt"
+    fi
+    echo Cleaning up...
+    rm -rf /tmp/promods-installer
+
+    printf "%sProMods unpacked successfully%s \n" "$COLOR_GREEN" "$END"
+    echo "Now you can open Euro Truck Simulator 2 and load the ProMods files."
+    echo "If you are unsure, in which order to load ProMods and other mods, you might be interested in reading the article here: https://www.promods.net/viewtopic.php?t=29618"
+    # echo "Also, check out readme files, located in" "$HOME/Library/Application Support/Euro Truck Simulator 2/mod" "folder".
+    printf "Also, check out readme files, located in %s%s%s folder\n" "$COLOR_GREEN" "$HOME/.local/share/Euro Truck Simulator 2/mod" "$END"
+fi
+
+if [[ $OS == 'Linux' ]]; then
+    echo
+    echo "==================="
+    echo "VERIFYING CHECKSUMS"
+    echo "==================="
+    echo
+    if [[ ! -e promods-def-v${pm}.scs && ! -e promods-def-st-v${pm}.scs ]]; then
+        printf "%sDef file missing, please, head to https://www.promods.net/download.php?game=ets and generate the def file, then restart this script %s\n" "$COLOR_RED" "$END"
+        exit 4
+    fi
+    if [[ $(sha256sum promods-v${pm}.7z.001) == "$p1sum" ]]; then
+     printf "%spromods-v${pm}.7z.001: OK%s \n" "$COLOR_GREEN" "$END"
+    else
+        printf "%spromods-v${pm}.7z.001: FAILED%s \n" "$COLOR_RED" "$END"
+        failed_file=1
+    fi
+    if [[ $(sha256sum promods-v${pm}.7z.002) == "$p2sum" ]]; then
+     printf "%spromods-v${pm}.7z.002: OK%s \n" "$COLOR_GREEN" "$END"
+     else
+        printf "%spromods-v${pm}.7z.002: FAILED%s \n" "$COLOR_RED" "$END"
+        failed_file=1
+    fi
+    if [[ $(sha256sum promods-v${pm}.7z.003) == "$p3sum" ]]; then
+     printf "%spromods-v${pm}.7z.003: OK%s \n" "$COLOR_GREEN" "$END"
+     else
+        printf "%spromods-v${pm}.7z.003: FAILED%s \n" "$COLOR_RED" "$END"
+        failed_file=1
+    fi
+    if [[ $(sha256sum promods-v${pm}.7z.004) == "$p4sum" ]]; then
+     printf "%spromods-v${pm}.7z.004: OK%s \n" "$COLOR_GREEN" "$END"
+     else
+        printf "%spromods-v${pm}.7z.004: FAILED%s \n" "$COLOR_RED" "$END"
+        failed_file=1
+    fi
+    if [[ $(sha256sum promods-v${pm}.7z.005) == "$p5sum" ]]; then
+     printf "%spromods-v${pm}.7z.005: OK%s \n" "$COLOR_GREEN" "$END"
+     else
+        printf "%spromods-v${pm}.7z.005: FAILED%s \n" "$COLOR_RED" "$END"
+        failed_file=1
+    fi
+    if [[ $(sha256sum promods-v${pm}.7z.006) == "$p6sum" ]]; then
+     printf "%spromods-v${pm}.7z.006: OK%s \n" "$COLOR_GREEN" "$END"
+     else
+        printf "%spromods-v${pm}.7z.006: FAILED%s \n" "$COLOR_RED" "$END"
+        failed_file=1
+    fi
+    if [[ $(sha256sum promods-v${pm}.7z.007) == "$p7sum" ]]; then
+     printf "%spromods-v${pm}.7z.007: OK%s \n" "$COLOR_GREEN" "$END"
+     else
+        printf "%spromods-v${pm}.7z.007: FAILED%s \n" "$COLOR_RED" "$END"
+        failed_file=1
+    fi
+    if [[ $(sha256sum promods-v${pm}.7z.008) == "$p8sum" ]]; then
+     printf "%spromods-v${pm}.7z.008: OK%s \n" "$COLOR_GREEN" "$END"
+     else
+        printf "%spromods-v${pm}.7z.008: FAILED%s \n" "$COLOR_RED" "$END"
+        failed_file=1
+    fi
+    if [[ $is_cap == 1 ]]; then
+        if [[ $(sha256sum promods-cap-v${cap}.7z) == "$capsum" ]]; then
+            printf "%spromods-cap-v${cap}.7z: OK%s \n" "$COLOR_GREEN" "$END"
+        else
+            printf "%spromods-cap-v${cap}.7z: FAILED%s \n" "$COLOR_RED" "$END"
+            failed_file=1
+        fi
+    fi
+    if [[ $is_me == 1 ]]; then
+        if [[ $(sha256sum promods-me-v${me}.7z) == "$mesum" ]]; then
+            printf "%spromods-me-v${me}.7z: OK%s \n" "$COLOR_GREEN" "$END"
+        else
+            printf "%spromods-me-v${me}.7z: FAILED%s \n" "$COLOR_RED" "$END"
+            failed_file=1
+        fi
+    fi
+    if [[ $is_tcp == 1 ]]; then
+        if [[ $(sha256sum promods-tcp-v${tcp}.7z) == "$tcpsum" ]]; then
+            printf "%spromods-tcp-v${tcp}.7z: OK%s \n" "$COLOR_GREEN" "$END"
+        else
+            printf "%spromods-tcp-v${tcp}.7z: FAILED%s \n" "$COLOR_RED" "$END"
+            failed_file=1
+        fi
+    fi
+    if [[ $failed_file == 1 ]]; then
+        echo "One or more files you downloaded looks corrupt or missing. Please re-download all files that are not OK in the output above"
+        exit 8
+    fi
+    echo
+    echo "==================="
+    echo "UNPACKING ARCHIVES"
+    echo "==================="
+    echo
+    mkdir -p "$HOME/.local/share/Euro Truck Simulator 2/mod"
+    mkdir -p /tmp/promods-installer/7zip
+    if [[ $(getconf LONG_BIT) == 64 ]]; then
+        curl --fail --progress-bar https://www.7-zip.org/a/7z2200-linux-x64.tar.xz -o /tmp/promods-installer/7zip/7zip.tar.xz
+        fail_check_curl
+    elif [[ $(getconf LONG_BIT) == 32 ]]; then
+        curl --fail --progress-bar https://www.7-zip.org/a/7z2200-linux-x86.tar.xz -o /tmp/promods-installer/7zip/7zip.tar.xz
+        fail_check_curl
+    else
+        echo "Looks like this PC is running on ARM CPU, exiting..."
+        exit 6
+    fi
+    unxz -d /tmp/promods-installer/7zip/7zip.tar.xz
+    tar --extract --file /tmp/promods-installer/7zip/7zip.tar --directory /tmp/promods-installer/7zip 7zz
+    /tmp/promods-installer/7zip/7zz e -o"$HOME/.local/share/Euro Truck Simulator 2/mod" promods-v${pm}.7z.001
+    fail_check
+    mv "$HOME/.local/share/Euro Truck Simulator 2/mod/readme.txt" "$HOME/.local/share/Euro Truck Simulator 2/mod/readme_main.txt"
+    if [[ $is_cap == 1 ]]; then
+        /tmp/promods-installer/7zip/7zz e -o"$HOME/.local/share/Euro Truck Simulator 2/mod" promods-cap-v${cap}.7z
+        fail_check
+        mv "$HOME/.local/share/Euro Truck Simulator 2/mod/readme.txt" "$HOME/.local/share/Euro Truck Simulator 2/mod/readme_cap.txt"
+    fi    
+    if [[ $is_me == 1 ]]; then
+        /tmp/promods-installer/7zip/7zz e -o"$HOME/.local/share/Euro Truck Simulator 2/mod" promods-me-v${me}.7z
+        fail_check
+        mv "$HOME/.local/share/Euro Truck Simulator 2/mod/readme.txt" "$HOME/.local/share/Euro Truck Simulator 2/mod/readme_me.txt"
+    fi
+    if [[ $is_tcp == 1 ]]; then
+        /tmp/promods-installer/7zip/7zz e -o"$HOME/.local/share/Euro Truck Simulator 2/mod" promods-tcp-v${tcp}.7z
+        fail_check
+        mv "$HOME/.local/share/Euro Truck Simulator 2/mod/readme.txt" "$HOME/.local/share/Euro Truck Simulator 2/mod/readme_tcp.txt"
+    fi
+    cleanup
+
+    printf "%sProMods unpacked successfully%s \n" "$COLOR_GREEN" "$END"
+    echo "Now you can open Euro Truck Simulator 2 and load the ProMods files."
+    echo "If you are unsure, in which order to load ProMods and other mods, you might be interested in reading the article here: https://www.promods.net/viewtopic.php?t=29618"
+    printf "Also, check out readme files, located in %s%s%s folder\n" "$COLOR_GREEN" "$HOME/.local/share/Euro Truck Simulator 2/mod" "$END"
+fi
