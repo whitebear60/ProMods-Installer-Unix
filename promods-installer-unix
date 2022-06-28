@@ -26,14 +26,21 @@ END="$(tput sgr0)"
 # Check for extractiom failures/aborts, exit after that
 function fail_check() {
     status=$?
-    if [[ $status != 0 ]]; then cleanup && exit $status; fi
+    if [[ $status != 0 ]]; then 
+        cleanup
+        exit $status
+    fi
 }
 
 # Seperate function for checking failure of 7-zip download, with an error message
 
 function fail_check_curl() {
     status=$?
-    if [[ $status != 0 ]]; then printf "%s7-zip download error, please check your Internet connection%s \n" "$COLOR_RED" "$END" && cleanup && exit $status; fi
+    if [[ $status != 0 ]]; then
+        printf "%s7-zip download error, please check your Internet connection%s \n" "$COLOR_RED" "$END"
+        cleanup
+        exit $status
+    fi
 }
 # Cleanup on exit or after an extraction or download error
 function cleanup() {
@@ -210,7 +217,7 @@ if [[ $OS == 'macOS' ]]; then
     /tmp/promods-installer/7zip/7zz e -o"$HOME/Library/Application Support/Euro Truck Simulator 2/mod" promods-v${pm}.7z.001
     fail_check
     mv "$HOME/Library/Application Support/Euro Truck Simulator 2/mod/readme.txt" "$HOME/Library/Application Support/Euro Truck Simulator 2/mod/readme_main.txt"
-    if [[ -e promods-def-v${pm}.scs]]; then
+    if [[ -e promods-def-v${pm}.scs ]]; then
         mv promods-def-v${pm}.scs "$HOME/Library/Application Support/Euro Truck Simulator 2/mod"
     fi
     if [[ -e promods-def-st-v${pm}.scs ]]; then
@@ -348,7 +355,7 @@ if [[ $OS == 'Linux' ]]; then
     tar --extract --file /tmp/promods-installer/7zip/7zip.tar --directory /tmp/promods-installer/7zip 7zz
     /tmp/promods-installer/7zip/7zz e -o"$HOME/.local/share/Euro Truck Simulator 2/mod" promods-v${pm}.7z.001
     fail_check
-    if [[ -e promods-def-v${pm}.scs]]; then
+    if [[ -e promods-def-v${pm}.scs ]]; then
         mv promods-def-v${pm}.scs "$HOME/.local/share/Euro Truck Simulator 2/mod"
     fi
     if [[ -e promods-def-st-v${pm}.scs ]]; then
